@@ -1,39 +1,16 @@
-# application.yml
-
 spring:
   application:
     name: serendib-api
 
-  flyway:
-    enabled: true
-    locations: classpath:db/migration # where migration file live
-    baseline-on-migrate: true
+  # Temporarily disable auto DB connection
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
 
-  # Database (use Docker for Postgres)
-  datasource:
-    url: jdbc:postgresql://localhost:5432/serendib_db
-    username: serendib_user
-    password: serendib_pass
-    driver-class-name: org.postgresql.Driver
-
-  # JPA / Hibernate
-  jpa:
-    hibernate:
-      ddl-auto: validate          # Don't auto-create tables (use Flyway later)
-    show-sql: true                # Print SQL to console
-    properties:
-      hibernate:
-        format_sql: true          # Pretty-print the SQL
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-
-  # For now, disable security so we can test freely
+  # Disable Spring Security for now
   security:
     enabled: false
 
 server:
   port: 8080
-
-# Custom app config
-app:
-  name: "Serendib AI"
-  version: "1.0.0"

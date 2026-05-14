@@ -1,0 +1,26 @@
+# docker-compose.yml
+# Run with: docker-compose up -d
+# Stop with: docker-compose down
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: serendib_postgres
+    environment:
+      POSTGRES_DB: serendib_db # Database name
+      POSTGRES_USER: serendib_user # Username
+      POSTGRES_PASSWORD: serendib_pass # Password
+    ports:
+      - "5432:5432" # host: container
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persist data
+
+  redis:
+    image: redis:7-alpine
+    container_name: serendib_redis
+    ports:
+      - "6379:6379"
+
+# Named volume so data survives container restarts
+volumes:
+  postgres_data:

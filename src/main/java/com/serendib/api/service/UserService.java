@@ -1,5 +1,7 @@
 package com.serendib.api.service;
 
+import com.serendib.api.dto.CreateUserRequest;
+import com.serendib.api.dto.UserResponse;
 import com.serendib.api.entity.User;
 import com.serendib.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,13 +18,19 @@ public class UserService {
     private final UserRepository userRepository;
 
     // Get all users
-    public List<User> getAllUsers(){
-        return userRepository.findAll();
+    public List<UserResponse> getAllUsers(){
+        return userRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
+
+
     // Get user by ID
-    public Optional<User> getUserById(UUID id){
-        return userRepository.findById(id);
+    public Optional<UserResponse> getUserById(UUID id){
+        return userRepository.findById(id)
+                .map(this::mapToResponse);
     }
 
     // Get user by Email
@@ -36,24 +44,37 @@ public class UserService {
     }
 
     // Create new user
-    public User createUser(String name, String email, String password){
+    public UserResponse createUser(CreateUserRequest request){
         // Check email isn't already taken
-        if(emailExists(email))
-            throw new RuntimeException("Email already exists: " + email);
+        if(emailExists(request.getEmail()))
+            throw new RuntimeException("Email already exists: " + request.getEmail());
 
         User newUser = User.builder()
-                .name(name)
-                .email(email)
-                .password(password)
+                .name(request.getName())
+                .email(request.getEmail())
+                .password(request.getPassword())
                 .build();
-
         // Save
-        return userRepository.save(newUser);
+        User savedUser = userRepository.save(newUser);
+
+        return mapToResponse(savedUser);
     }
 
     // Delete a user
     public void deleteUser(UUID id) {
         userRepository.deleteById(id);
+    }
+
+
+    // Private mapper
+    // Converts Entity -> Response DTO
+    private UserResponse mapToResponse(User user) {
+        return UserResponse.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .createdAt(user.getCreatedAt())
+                .build();
     }
 
 }

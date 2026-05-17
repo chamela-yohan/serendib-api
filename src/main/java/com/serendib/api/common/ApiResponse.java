@@ -39,4 +39,14 @@ public class ApiResponse<T> {
                 .build();
     }
 
+
+    // Error response WITH data (for validation errors with field details)
+    public static <T> ApiResponse<T> error(String message, T data) {
+        return ApiResponse.<T>builder()
+                .success(false)
+                .message(message)
+                .data(data)
+                .build();
+    }
+
 }

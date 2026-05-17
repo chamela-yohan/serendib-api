@@ -3,6 +3,8 @@ package com.serendib.api.service;
 import com.serendib.api.dto.CreateUserRequest;
 import com.serendib.api.dto.UserResponse;
 import com.serendib.api.entity.User;
+import com.serendib.api.exception.BusinessException;
+import com.serendib.api.exception.ResourceNotFoundException;
 import com.serendib.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,9 +30,12 @@ public class UserService {
 
 
     // Get user by ID
-    public Optional<UserResponse> getUserById(UUID id){
+    public UserResponse getUserById(UUID id){
         return userRepository.findById(id)
-                .map(this::mapToResponse);
+                .map(this::mapToResponse)
+                .orElseThrow(()->
+                    new ResourceNotFoundException("User", id)
+                );
     }
 
     // Get user by Email
@@ -47,7 +52,9 @@ public class UserService {
     public UserResponse createUser(CreateUserRequest request){
         // Check email isn't already taken
         if(emailExists(request.getEmail()))
-            throw new RuntimeException("Email already exists: " + request.getEmail());
+            throw new BusinessException(
+                    "Email already exists: " + request.getEmail()
+            );
 
         User newUser = User.builder()
                 .name(request.getName())

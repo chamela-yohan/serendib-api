@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -47,5 +48,12 @@ public class HealthController {
     public ApiResponse<List<UserResponse>> getAllUsers() {
         List<UserResponse> users = userService.getAllUsers();
         return ApiResponse.success("Users retrieved successfully", users);
+    }
+
+    // GET single user by ID
+    @GetMapping("/test/users/{id}")
+   public ApiResponse<UserResponse> getUserById(@PathVariable UUID id){
+        UserResponse user = userService.getUserById(id);
+        return ApiResponse.success("User retrieved successfully", user);
     }
 }

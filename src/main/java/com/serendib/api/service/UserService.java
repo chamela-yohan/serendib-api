@@ -1,7 +1,7 @@
 package com.serendib.api.service;
 
-import com.serendib.api.dto.CreateUserRequest;
-import com.serendib.api.dto.UserResponse;
+import com.serendib.api.dto.request.CreateUserRequest;
+import com.serendib.api.dto.response.UserResponse;
 import com.serendib.api.entity.User;
 import com.serendib.api.exception.BusinessException;
 import com.serendib.api.exception.ResourceNotFoundException;
@@ -69,6 +69,8 @@ public class UserService {
 
     // Delete a user
     public void deleteUser(UUID id) {
+        if(!userRepository.existsById(id))
+            throw new ResourceNotFoundException("User", id);
         userRepository.deleteById(id);
     }
 

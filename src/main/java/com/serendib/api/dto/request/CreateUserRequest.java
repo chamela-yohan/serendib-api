@@ -1,4 +1,4 @@
-package com.serendib.api.dto;
+package com.serendib.api.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

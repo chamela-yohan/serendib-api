@@ -1,4 +1,4 @@
-package com.serendib.api.dto;
+package com.serendib.api.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

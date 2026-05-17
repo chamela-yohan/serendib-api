@@ -1,59 +1,33 @@
 package com.serendib.api.controller;
 
 import com.serendib.api.common.ApiResponse;
-import com.serendib.api.dto.CreateUserRequest;
-import com.serendib.api.dto.UserResponse;
-import com.serendib.api.entity.User;
-import com.serendib.api.service.UserService;
-import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1")
 public class HealthController {
-    private final UserService userService;
-
-    public HealthController(UserService userService) {
-        this.userService = userService;
-    }
 
     @GetMapping("/health")
-    public Map<String, Object> healthCheck(){
-        Map<String, Object> response = new HashMap<>();
-
-        response.put("status", "UP");
-        response.put("app", "Serendib AI API");
-        response.put("version", "1.0.0");
-        response.put("timestamp", LocalDateTime.now().toString());
-        return response;
+    public ApiResponse<Map<String, String>> healthCheck() {
+        return ApiResponse.success("API is running", Map.of(
+                "app",       "Serendib AI API",
+                "version",   "1.0.0",
+                "timestamp", LocalDateTime.now().toString(),
+                "status",    "UP"
+        ));
     }
 
-    // TEST endpoint: create a user (new uses DTO + validation)
-    @PostMapping("/test/users")
-    public ApiResponse<UserResponse> createTestUser(
-            @RequestBody @Valid CreateUserRequest request
-            ) {
-        UserResponse user = userService.createUser(request);
-        return ApiResponse.success("User created successfully", user);
-    }
-
-    // TEST endpoint: get all users
-    @GetMapping("/test/users")
-    public ApiResponse<List<UserResponse>> getAllUsers() {
-        List<UserResponse> users = userService.getAllUsers();
-        return ApiResponse.success("Users retrieved successfully", users);
-    }
-
-    // GET single user by ID
-    @GetMapping("/test/users/{id}")
-   public ApiResponse<UserResponse> getUserById(@PathVariable UUID id){
-        UserResponse user = userService.getUserById(id);
-        return ApiResponse.success("User retrieved successfully", user);
+    @GetMapping("/greet/{name}")
+    public ApiResponse<Map<String, String>> greet(@PathVariable String name) {
+        return ApiResponse.success("Greeting generated", Map.of(
+                "message", "Welcome to Serendib AI, " + name + "!",
+                "hint",    "Your Sri Lanka adventure starts here."
+        ));
     }
 }

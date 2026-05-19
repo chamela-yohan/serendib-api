@@ -7,6 +7,7 @@ import com.serendib.api.exception.BusinessException;
 import com.serendib.api.exception.ResourceNotFoundException;
 import com.serendib.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.UUID;
 public class UserService {
     // 'final' + @RequiredArgsConstructor: Spring automatically injects User Repository here. No 'new UserRepository()' needed(DEPENDENCY INJECTION)
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     // Get all users
     public List<UserResponse> getAllUsers(){
@@ -59,7 +61,8 @@ public class UserService {
         User newUser = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
-                .password(request.getPassword())
+                .password(passwordEncoder.encode(request.getPassword())) // hash
+                .role(User.Role.TRAVELER)
                 .build();
         // Save
         User savedUser = userRepository.save(newUser);

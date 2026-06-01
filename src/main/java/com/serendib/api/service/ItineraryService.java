@@ -93,7 +93,7 @@ public class ItineraryService {
                 .estimatedTotalCost(aiOutput.getEstimatedTotalCost())
                 .packingSuggestions(aiOutput.getPackingSuggestions())
                 .generalTips(aiOutput.getGeneralTips())
-                .generatedBy("gpt-4o-mini")
+                .generatedBy("gemini-3.5-flash")
                 .build();
 
         Itinerary saved = itineraryRepository.save(itinerary);

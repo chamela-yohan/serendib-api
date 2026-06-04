@@ -19,14 +19,16 @@ public interface KnowledgeBaseRepository extends JpaRepository<KnowledgeBase, UU
         - ORDER BY distance ASC: most similar first
      */
 
-    @Query(
-            value = """
-                    SELECT  * FROM knowledge_base
-                    ORDER BY embedding <=> CAST(:embedding AS vector)
-                    LIMIT :limit
-                    """, nativeQuery = true
-    )
-    List<KnowledgeBase> findSimilar(@Param("embedding") String embedding, @Param("limit") int limit);
+    @Query(value = """
+    SELECT id, content, category, source, created_at, null AS embedding
+    FROM knowledge_base
+    ORDER BY embedding <=> CAST(:embedding AS vector)
+    LIMIT :limit
+    """, nativeQuery = true)
+    List<KnowledgeBase> findSimilar(
+            @Param("embedding") String embedding,
+            @Param("limit") int limit
+    );
 
 
     List<KnowledgeBase> findByCategory(String category);

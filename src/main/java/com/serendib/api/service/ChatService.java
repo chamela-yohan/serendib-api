@@ -41,7 +41,8 @@ public class ChatService {
         User currentUser = authUtils.getCurrentUser();
 
         ChatSession.ChatSessionBuilder builder = ChatSession.builder()
-                .user(currentUser).title("Sri Lanka Travel Chat");
+                .user(currentUser)
+                .title("Sri Lanka Travel Chat");
 
         // Optionally link to a trip
         if (tripId != null) {
@@ -69,35 +70,35 @@ public class ChatService {
 
         UUID userId = authUtils.getCurrentUserId();
 
-        //  Verify session belongs to user
+        // 1. Verify session belongs to user
         ChatSession session = sessionRepository
                 .findByIdAndUserId(sessionId, userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Chat session", sessionId)
                 );
 
-        //  Get last 10 messages for conversation context
+        // 2. Get last 10 messages for conversation context
         List<ChatMessage> history =
                 messageRepository.findTop10BySessionIdOrderByCreatedAtAsc(sessionId);
 
-        //  RAG — find relevant Sri Lanka knowledge
+        // 3. RAG — find relevant Sri Lanka knowledge
         String relevantContext =
                 ragService.findRelevantContext(request.getMessage(), 3);
 
-        //  Build conversation history string for the prompt
+        // 4. Build conversation history string for the prompt
         String historyText = history.stream()
                 .map(m -> m.getRole().toUpperCase() + ": " + m.getContent())
                 .collect(Collectors.joining("\n"));
 
-        //  Build system prompt with RAG context
+        // 5. Build system prompt with RAG context
         String systemPrompt = buildSystemPrompt(relevantContext);
 
-        //  Build user message with history
+        // 6. Build user message with history
         String userMessage = historyText.isEmpty()
                 ? request.getMessage()
                 : historyText + "\nUSER: " + request.getMessage();
 
-        //  Call Gemini
+        // 7. Call Gemini
         log.info("Sending chat message for session: {}", sessionId);
         String aiResponse = chatClient
                 .prompt()
@@ -106,14 +107,14 @@ public class ChatService {
                 .call()
                 .content();
 
-        //  Save user message to DB
+        // 8. Save user message to DB
         messageRepository.save(ChatMessage.builder()
                 .session(session)
                 .role("user")
                 .content(request.getMessage())
                 .build());
 
-        //  Save AI response to DB
+        // 9. Save AI response to DB
         messageRepository.save(ChatMessage.builder()
                 .session(session)
                 .role("assistant")

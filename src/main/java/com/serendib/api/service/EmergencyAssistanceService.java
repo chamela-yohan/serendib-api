@@ -7,6 +7,8 @@ import com.serendib.api.dto.response.SosResponse;
 import com.serendib.api.entity.EmergencyService;
 import com.serendib.api.entity.SosAlert;
 import com.serendib.api.entity.User;
+import com.serendib.api.event.SerendibEventProducer;
+import com.serendib.api.event.SosTriggeredEvent;
 import com.serendib.api.repository.EmergencyServiceRepository;
 import com.serendib.api.repository.SosAlertRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import java.util.List;
 public class EmergencyAssistanceService {
     private final EmergencyServiceRepository emergencyServiceRepository;
     private final SosAlertRepository sosAlertRepository;
+    private final SerendibEventProducer eventProducer;
     private final AuthUtils authUtils;
 
     private static final List<String> NATIONAL_EMERGENCY_NUMBERS = List.of(
@@ -106,7 +109,7 @@ public class EmergencyAssistanceService {
                 nearestPolice = EmergencyServiceResponse.from(police.get(0));
         }
 
-        return SosResponse.builder()
+        SosResponse sosResponse =  SosResponse.builder()
                 .alertId(alert.getId())
                 .status("ACTIVE")
                 .nationalEmergencyNumbers(NATIONAL_EMERGENCY_NUMBERS)
@@ -116,7 +119,24 @@ public class EmergencyAssistanceService {
                 .message("Emergency alert recorded. Call 119 (Police) or 110 (Ambulance) immediately.")
                 .build();
 
+        eventProducer.publishSosTriggered(
+                SosTriggeredEvent.builder()
+                        .alertId(alert.getId())
+                        .userEmail(user.getEmail())
+                        .latitude(request.getLatitude())
+                        .longitude(request.getLongitude())
+                        .message(request.getMessage())
+                        .nearestHospital(nearestHospital != null ? nearestHospital.getName() : "Unknown")
+                        .nearestPolice(nearestPolice != null ? nearestPolice.getName() : "Unknown")
+                        .triggeredAt(java.time.LocalDateTime.now())
+                        .build()
+        );
+
+        return sosResponse;
+
     }
+
+
 
 
 }

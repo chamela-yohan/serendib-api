@@ -5,6 +5,8 @@ import com.serendib.api.dto.request.CreateTripRequest;
 import com.serendib.api.dto.response.TripResponse;
 import com.serendib.api.entity.Trip;
 import com.serendib.api.entity.User;
+import com.serendib.api.event.SerendibEventProducer;
+import com.serendib.api.event.TripStatusChangedEvent;
 import com.serendib.api.exception.ResourceNotFoundException;
 import com.serendib.api.exception.BusinessException;
 import com.serendib.api.repository.TripRepository;
@@ -23,6 +25,7 @@ public class TripService {
 
     private final TripRepository tripRepository;
     private final AuthUtils authUtils;  // our helper to get current user
+    private final SerendibEventProducer eventProducer;
 
     // CREATE a new trip
     @Transactional
@@ -84,7 +87,6 @@ public class TripService {
         return mapToResponse(trip);
     }
 
-    // DELETE a trip
     @Transactional
     public void deleteTrip(UUID tripId) {
         UUID userId = authUtils.getCurrentUserId();
@@ -95,12 +97,22 @@ public class TripService {
                         new ResourceNotFoundException("Trip", tripId)
                 );
 
-        // Only DRAFT or CANCELLED trips can be deleted
         if (trip.getStatus() == Trip.TripStatus.ACTIVE) {
             throw new BusinessException(
                     "Cannot delete an active trip. Cancel it first."
             );
         }
+
+        eventProducer.publishTripStatusChanged(
+                TripStatusChangedEvent.builder()
+                        .tripId(trip.getId())
+                        .tripTitle(trip.getTitle())
+                        .userEmail(trip.getUser().getEmail())
+                        .previousStatus(trip.getStatus().toString())
+                        .newStatus("DELETED")
+                        .changedAt(java.time.LocalDateTime.now())
+                        .build()
+        );
 
         tripRepository.delete(trip);
         log.info("Trip deleted: {}", tripId);

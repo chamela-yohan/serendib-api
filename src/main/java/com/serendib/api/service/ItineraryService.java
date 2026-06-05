@@ -6,6 +6,9 @@ import com.serendib.api.common.AuthUtils;
 import com.serendib.api.dto.response.ItineraryResponse;
 import com.serendib.api.entity.Itinerary;
 import com.serendib.api.entity.Trip;
+import com.serendib.api.event.ItineraryGeneratedEvent;
+import com.serendib.api.event.SerendibEventProducer;
+import com.serendib.api.event.TripStatusChangedEvent;
 import com.serendib.api.exception.BusinessException;
 import com.serendib.api.exception.ResourceNotFoundException;
 import com.serendib.api.repository.ItineraryRepository;
@@ -29,6 +32,8 @@ public class ItineraryService {
     private final ItineraryPromptBuilder promptBuilder;
     private final ObjectMapper objectMapper;           // JSON parser
     private final AuthUtils authUtils;
+
+    private final SerendibEventProducer eventProducer;
 
     @Transactional
     public ItineraryResponse generateItinerary(UUID tripId) {
@@ -103,6 +108,28 @@ public class ItineraryService {
         tripRepository.save(trip);
 
         log.info("Itinerary saved for trip: {}", tripId);
+
+        eventProducer.publishTripStatusChanged(
+                TripStatusChangedEvent.builder()
+                        .tripId(trip.getId())
+                        .tripTitle(trip.getTitle())
+                        .userEmail(trip.getUser().getEmail())
+                        .previousStatus("DRAFT")
+                        .newStatus("PLANNED")
+                        .changedAt(java.time.LocalDateTime.now())
+                        .build()
+        );
+
+        eventProducer.publishItineraryGenerated(
+                ItineraryGeneratedEvent.builder()
+                        .itineraryId(saved.getId())
+                        .tripId(trip.getId())
+                        .tripTitle(trip.getTitle())
+                        .userEmail(trip.getUser().getEmail())
+                        .numberOfDays(trip.getNumberOfDays())
+                        .generatedAt(java.time.LocalDateTime.now())
+                        .build()
+        );
 
         return mapToResponse(saved, trip);
     }

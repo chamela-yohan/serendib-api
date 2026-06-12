@@ -1,0 +1,30 @@
+spring:
+  # Kafka disabled in tests
+  kafka:
+    bootstrap-servers: localhost:9999
+    producer:
+      properties:
+        max.block.ms: 500
+        delivery.timeout.ms: 1000
+        request.timeout.ms: 500
+    admin:
+      properties:
+        request.timeout.ms: 1000
+        default.api.timeout.ms: 1000
+
+  # AI disabled in tests
+  ai:
+    openai:
+      api-key: test-key-not-used
+      base-url: http://localhost:9999/fake
+
+  # JPA — show SQL in test output
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none   # Flyway handles schema
+
+logging:
+  level:
+    com.serendib.api: DEBUG
+    org.testcontainers: INFO

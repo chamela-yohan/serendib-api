@@ -5,6 +5,7 @@ import com.serendib.api.entity.KnowledgeBase;
 import com.serendib.api.repository.KnowledgeBaseRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.boot.ApplicationArguments;
@@ -22,6 +23,7 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+//@Profile("!test")
 public class KnowledgeBaseSeeder implements ApplicationRunner {
 
     private final KnowledgeBaseRepository knowledgeBaseRepository;
@@ -139,6 +141,11 @@ public class KnowledgeBaseSeeder implements ApplicationRunner {
             String category = item[1];
 
             float[] embedding = embeddingClient.embed(content);
+
+            if (embedding == null) {
+                log.warn("Embedding returned null — skipping knowledge base seeding");
+                return;
+            }
 
             // Convert float[] to "[0.1,0.2,...]" string
             String vectorStr = "[" +

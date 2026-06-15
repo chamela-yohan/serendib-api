@@ -1,0 +1,1 @@
+![CI](https://github.com/chamela-yohan/serendib-api/actions/workflows/ci.yml/badge.svg)
